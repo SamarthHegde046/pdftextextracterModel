@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VTU PDF Extractor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+    h2 {
+      color: #333;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    pre {
+      background-color: white;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📄 VTU Result PDF Extractor</h2>
+
+  <form id="uploadForm" method="POST" enctype="multipart/form-data">
+    <input type="file" name="pdf" accept=".pdf" required />
+    <button type="submit">Upload & Extract</button>
+  </form>
+
+  <div id="output"></div>
+
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = "<p>🔄 Extracting...</p>";
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/extract", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          outputDiv.innerHTML = `<p style="color:red;">❌ ${data.error}</p>`;
+          return;
+        }
+
+        let resultHTML = `<h3>✅ Extracted Data:</h3>`;
+        resultHTML += `<p><strong>Semester:</strong> ${data.SEM?.[0] || "Not Found"}</p>`;
+
+        if (data.SUBCODE && data.TMARK) {
+          resultHTML += `<h4>Subjects & Marks:</h4><ul>`;
+          for (let i = 0; i < data.SUBCODE.length; i++) {
+            const sub = data.SUBCODE[i];
+            const mark = data.TMARK[i] || "—";
+            resultHTML += `<li><strong>${sub}</strong>: ${mark}</li>`;
+          }
+          resultHTML += `</ul>`;
+        }
+
+        outputDiv.innerHTML = resultHTML;
+      } catch (err) {
+        outputDiv.innerHTML = `<p style="color:red;">⚠️ Error: ${err.message}</p>`;
+      }
+    });
+  </script>
+
+</body>
+</html>

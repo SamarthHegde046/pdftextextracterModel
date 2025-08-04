@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: vtu-pdf-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    web: gunicorn app:app
+    envVars:
+      - key: PORT
+        value: 10000
